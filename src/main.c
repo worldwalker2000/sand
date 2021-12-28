@@ -26,18 +26,32 @@ Color particle_colors[] = {
 #define PARTICLE_SIZE 16
 #define WORLD_SIZE (WINDOW_SIZE / PARTICLE_SIZE)
 #define WORLD_SIZE_SQ (WORLD_SIZE * WORLD_SIZE)
-#define WIDX(x, y) (x + WORLD_SIZE * y)
 typedef struct {
   ParticleType particles[WORLD_SIZE_SQ];
 } World;
 
+int widx(int x, int y) {
+  return x + WORLD_SIZE * y;
+}
+
 #define RENDER_OFFSET ((WINDOW_SIZE % PARTICLE_SIZE) / 2)
-#define TTOP(v) RENDER_OFFSET + (v * PARTICLE_SIZE)
-#define PTOT(v) (int) floor((v - RENDER_OFFSET) / PARTICLE_SIZE)
+
+int ttop(int v) {
+  return RENDER_OFFSET + (v * PARTICLE_SIZE);
+}
+
+int ptot(int v) {
+  return (int) floor((v - RENDER_OFFSET) / PARTICLE_SIZE);
+}
 
 void particle_draw(int x, int y, World* world) {
-  ParticleType p = world->particles[WIDX(x, y)];
-  DrawRectangle(TTOP(x), TTOP(y), PARTICLE_SIZE, PARTICLE_SIZE, particle_colors[p]);
+  ParticleType p = world->particles[widx(x, y)];
+  if (p == VOID) {
+    fprtinf(stderr, "Void particle found in draw.\n");
+    return;
+  }
+
+  DrawRectangle(ttop(x), ttop(y), PARTICLE_SIZE, PARTICLE_SIZE, particle_colors[p]);
 }
 
 typedef enum {
@@ -88,9 +102,9 @@ void swap_particles_in_dir(int x, int y, Dir dir, World* world) {
   int dx = x, dy = y;
   move_in_dir(&dx, &dy, dir);
 
-  ParticleType temp = world->particles[WIDX(x, y)];
-  world->particles[WIDX(x, y)] = world->particles[WIDX(dx, dy)];
-  world->particles[WIDX(dx, dy)] = temp;
+  ParticleType temp = world->particles[widx(x, y)];
+  world->particles[widx(x, y)] = world->particles[widx(dx, dy)];
+  world->particles[widx(dx, dy)] = temp;
 }
 
 ParticleType get_particle_in_dir(int x, int y, Dir dir, World* world) {
@@ -100,11 +114,11 @@ ParticleType get_particle_in_dir(int x, int y, Dir dir, World* world) {
 
   if (x < 0 || y < 0 || x >= WORLD_SIZE || y >= WORLD_SIZE) return VOID;
 
-  return world->particles[WIDX(x, y)];
+  return world->particles[widx(x, y)];
 }
 
 
-void particle_air_tick(int x, int y, World* world) {
+void particle_tick_noopp(int x, int y, World* world) {
   (void) x;
   (void) y;
   (void) world;
@@ -140,21 +154,16 @@ void particle_water_tick(int x, int y, World* world) {
   }
 }
 
-void particle_rock_tick(int x, int y, World* world) {
-  (void) x;
-  (void) y;
-  (void) world;
-}
-
 void (*particle_tick_functions[]) (int, int, World*) = {
-  [AIR] = &particle_air_tick,
+  [AIR] = &particle_tick_noopp,
   [SAND] = &particle_sand_tick,
   [WATER] = &particle_water_tick,
-  [ROCK] = &particle_rock_tick
+  [ROCK] = &particle_tick_noopp,
+  [VOID] = &particle_tick_noopp
 };
 
 void particle_tick(int x, int y, World* world) {
-  ParticleType p = world->particles[WIDX(x, y)];
+  ParticleType p = world->particles[widx(x, y)];
   if (p == VOID) {
     fprintf(stderr, "Void particle found in tick.\n");
     return;
@@ -186,7 +195,7 @@ int main(void)
 
     if (IsMouseButtonDown(MOUSE_LEFT_BUTTON)) {
       Vector2 mouse = GetMousePosition();
-      world.particles[WIDX(PTOT((int) mouse.x), PTOT((int) mouse.y))] = selected;
+      world.particles[widx(ptot((int) mouse.x), ptot((int) mouse.y))] = selected;
     }
 
 
