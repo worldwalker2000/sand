@@ -47,7 +47,7 @@ int ptot(int v) {
 void particle_draw(int x, int y, World* world) {
   ParticleType p = world->particles[widx(x, y)];
   if (p == VOID) {
-    fprtinf(stderr, "Void particle found in draw.\n");
+    fprintf(stderr, "Void particle found in draw.\n");
     return;
   }
 
@@ -159,7 +159,6 @@ void (*particle_tick_functions[]) (int, int, World*) = {
   [SAND] = &particle_sand_tick,
   [WATER] = &particle_water_tick,
   [ROCK] = &particle_tick_noopp,
-  [VOID] = &particle_tick_noopp
 };
 
 void particle_tick(int x, int y, World* world) {
