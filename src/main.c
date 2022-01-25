@@ -32,7 +32,7 @@ struct World {
   enum ParticleType particles[WORLD_SIZE_SQ];
 };
 
-int
+static int
 widx(int x, int y)
 {
   return x + WORLD_SIZE * y;
@@ -40,19 +40,19 @@ widx(int x, int y)
 
 #define RENDER_OFFSET ((WINDOW_SIZE % PARTICLE_SIZE) / 2)
 
-int
+static int
 ttop(int v)
 {
   return RENDER_OFFSET + (v * PARTICLE_SIZE);
 }
 
-int
+static int
 ptot(int v)
 {
   return (int) floor((v - RENDER_OFFSET) / PARTICLE_SIZE);
 }
 
-void
+static void
 particle_draw(int x, int y, struct World* world)
 {
   enum ParticleType p = world->particles[widx(x, y)];
@@ -76,7 +76,7 @@ enum Dir {
 };
 #define DIR_LAST SE
 
-void
+static void
 move_in_dir(int* x, int* y, enum Dir dir)
 {
   switch (dir) {
@@ -111,7 +111,7 @@ move_in_dir(int* x, int* y, enum Dir dir)
   }
 }
 
-void
+static void
 swap_particles_in_dir(int x, int y, enum Dir dir, struct World* world)
 {
   int dx = x, dy = y;
@@ -122,15 +122,18 @@ swap_particles_in_dir(int x, int y, enum Dir dir, struct World* world)
   world->particles[widx(dx, dy)] = temp;
 }
 
-void
+/*
+ * currently unused but could be used later
+static void
 set_particle_in_dir(int x, int y, enum Dir dir, enum ParticleType p, struct World* world)
 {
   move_in_dir(&x, &y, dir);
 
   world->particles[widx(x, y)] = p;
 }
+*/
 
-enum ParticleType
+static enum ParticleType
 get_particle_in_dir(int x, int y, enum Dir dir, struct World* world)
 {
   // if (x < 0 || y < 0 || x >= WORLD_SIZE || y >= WORLD_SIZE) return VOID;
@@ -143,7 +146,7 @@ get_particle_in_dir(int x, int y, enum Dir dir, struct World* world)
 }
 
 
-void
+static void
 particle_tick_noopp(int x, int y, struct World* world)
 {
   (void) x;
@@ -151,7 +154,7 @@ particle_tick_noopp(int x, int y, struct World* world)
   (void) world;
 }
 
-void
+static void
 particle_sand_tick(int x, int y, struct World* world)
 {
   if (get_particle_in_dir(x, y, S, world) == AIR || get_particle_in_dir(x, y, S, world) == WATER) {
@@ -163,7 +166,7 @@ particle_sand_tick(int x, int y, struct World* world)
   }
 }
 
-void
+static void
 particle_water_tick(int x, int y, struct World* world)
 {
   if (get_particle_in_dir(x, y, S, world) == AIR) {
@@ -185,7 +188,7 @@ particle_water_tick(int x, int y, struct World* world)
   }
 }
 
-void
+static void
 particle_bomb_tick(int x, int y, struct World* world)
 {
     const int bomb_size = 10;
@@ -209,7 +212,7 @@ void (*particle_tick_functions[]) (int, int, struct World*) = {
   [BOMB] = &particle_bomb_tick,
 };
 
-void
+static void
 particle_tick(int x, int y, struct World* world)
 {
   enum ParticleType p = world->particles[widx(x, y)];
